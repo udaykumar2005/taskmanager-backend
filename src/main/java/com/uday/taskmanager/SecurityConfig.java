@@ -2,6 +2,7 @@ package com.uday.taskmanager;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,6 +25,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
+
                 .cors(cors -> cors.configurationSource(request -> {
 
                     CorsConfiguration config = new CorsConfiguration();
@@ -52,12 +54,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**")
-                        .permitAll()
-                        .anyRequest()
-                        .authenticated())
 
-                // JWT Filter
+                        // Allow CORS preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // Public endpoints
+                        .requestMatchers("/auth/**").permitAll()
+
+                        // Everything else requires JWT
+                        .anyRequest().authenticated()
+                )
+
                 .addFilterBefore(
                         jwtAuthenticationFilter,
                         UsernamePasswordAuthenticationFilter.class
