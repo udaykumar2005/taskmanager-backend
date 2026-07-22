@@ -6,7 +6,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/tasks")
-@CrossOrigin(origins = "http://localhost:3000")
 public class TaskController {
 
     private final TaskService taskService;
@@ -27,7 +26,7 @@ public class TaskController {
 
     @PutMapping("/{id}")
     public Task updateTask(@PathVariable int id,
-            @RequestBody Task task) {
+                           @RequestBody Task task) {
 
         return taskService.updateTask(id, task);
     }
