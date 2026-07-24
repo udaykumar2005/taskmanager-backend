@@ -3,7 +3,9 @@ package com.uday.taskmanager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -25,12 +27,10 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-
                 .cors(cors -> cors.configurationSource(request -> {
 
                     CorsConfiguration config = new CorsConfiguration();
 
-                    // Allow localhost and all Vercel deployments
                     config.setAllowedOriginPatterns(List.of(
                             "http://localhost:3000",
                             "https://*.vercel.app"
@@ -45,7 +45,6 @@ public class SecurityConfig {
                     ));
 
                     config.setAllowedHeaders(List.of("*"));
-
                     config.setAllowCredentials(true);
 
                     return config;
@@ -53,15 +52,18 @@ public class SecurityConfig {
 
                 .csrf(csrf -> csrf.disable())
 
+                // Disable Spring Security default login
+                .formLogin(form -> form.disable())
+                .httpBasic(httpBasic -> httpBasic.disable())
+
+                // JWT is stateless
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+
                 .authorizeHttpRequests(auth -> auth
-
-                        // Allow CORS preflight requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // Public endpoints
                         .requestMatchers("/auth/**").permitAll()
-
-                        // Everything else requires JWT
                         .anyRequest().authenticated()
                 )
 
